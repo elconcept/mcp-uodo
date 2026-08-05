@@ -1,0 +1,32 @@
+{
+  "$schema": "https://mcpmarket.com/server-schema.json",
+  "id": "pl/uodo-mcp",
+  "name": "UODO — Decyzje Prezesa Urzędu Ochrony Danych Osobowych",
+  "description": "Search and analyze decisions of the Polish Data Protection Authority (UODO/Prezes UODO). Access GDPR enforcement decisions, fines, warnings, and reprimands. Built for Polish lawyers, DPOs, and legal researchers.",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "keywords": ["polish-law", "gdpr", "rodo", "data-protection", "uodo", "orzeczenia", "prawo-polskie"],
+  "tools": [
+    {
+      "name": "uodo_search_decisions",
+      "description": "Search UODO decisions by keywords, case number, and date range"
+    },
+    {
+      "name": "uodo_get_decision",
+      "description": "Retrieve a full UODO decision by ID — metadata, verbatim operative part, and complete legal reasoning"
+    },
+    {
+      "name": "uodo_list_search_fields",
+      "description": "List available search fields and types for building advanced queries"
+    }
+  ],
+  "packages": [
+    {
+      "registry": "npm",
+      "name": "@thescalablelegalmarketer/uodo-mcp",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@thescalablelegalmarketer/uodo-mcp"]
+    }
+  ]
+}

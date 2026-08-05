@@ -1,0 +1,47 @@
+{
+  "name": "@thescalablelegalmarketer/uodo-mcp",
+  "version": "1.0.8",
+  "description": "MCP server for searching and analyzing UODO (Polish Data Protection Authority) decisions",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "Pawel Ojdowski",
+  "contributors": [
+    "Claude Sonnet (Anthropic) <https://anthropic.com>"
+  ],
+  "keywords": [
+    "mcp",
+    "uodo",
+    "polish-law",
+    "gdpr",
+    "rodo",
+    "data-protection",
+    "orzeczenia"
+  ],
+  "bin": {
+    "uodo-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "tsc --noEmit && node build.mjs",
+    "dev": "tsx src/index.ts",
+    "dev:http": "tsx src/http-server.ts",
+    "start": "node dist/index.js",
+    "start:http": "node dist/http-server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.21.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

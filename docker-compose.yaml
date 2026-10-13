@@ -1,0 +1,27 @@
+# mcp-uodo - decyzje UODO (Streamable HTTP, /mcp, port 3000). Stack Portainera "mcp-uodo".
+# Bez portu na hoscie. Dostep wylacznie: https://mcp-uodo.xlap.pl/mcp - tunel cloudflared, bez Access (publiczny -
+# konektory claude.ai/ChatGPT). cf_mcp_uodo: cloudflared + ten serwis, z wyjsciem do internetu.
+# Przebudowa po pushu na main: deploy-hook (.github/workflows/deploy.yml).
+services:
+  mcp-uodo:
+    build:
+      context: /volume2/docker/mcp-uodo
+      dockerfile: Dockerfile.nas
+    image: mcp-uodo:latest
+    container_name: mcp-uodo
+    user: "1029:100"
+    environment:
+      - TZ=Europe/Warsaw
+      - PORT=3000
+    networks:
+      - cf_mcp_uodo
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+networks:
+  cf_mcp_uodo:
+    external: true

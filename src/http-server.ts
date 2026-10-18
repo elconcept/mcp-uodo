@@ -1,57 +1,62 @@
 import { createServer as createHttpServer, IncomingMessage, ServerResponse } from "http";
-import { randomUUID } from "crypto";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createMcpServer } from "./server";
 import { VERSION } from "./version";
 
 const PORT = Number(process.env.PORT ?? 3000);
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const MAX_SESSIONS = 100;
-
-const sessions = new Map<string, StreamableHTTPServerTransport>();
-
 function setCors(res: ServerResponse): void {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, mcp-session-id");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, mcp-session-id, mcp-protocol-version, Authorization");
 }
 
 async function handleMcp(req: IncomingMessage, res: ServerResponse): Promise<void> {
-  const sessionId = req.headers["mcp-session-id"] as string | undefined;
-
-  if (sessionId) {
-    if (!UUID_RE.test(sessionId) || !sessions.has(sessionId)) {
-      res.writeHead(404, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "Session not found" }));
-      return;
-    }
-    await sessions.get(sessionId)!.handleRequest(req, res);
-    return;
-  }
-
+  // This server only exposes independent, read-only tools. Stateless HTTP avoids
+  // accumulating sessions when clients disconnect without sending DELETE.
   if (req.method !== "POST") {
-    res.writeHead(400, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: "New sessions must be initialized via POST" }));
+    res.writeHead(405, {
+      "Content-Type": "application/json",
+      "Allow": "POST, OPTIONS",
+    });
+    res.end(JSON.stringify({
+      jsonrpc: "2.0",
+      error: { code: -32000, message: "Method not allowed." },
+      id: null,
+    }));
     return;
   }
 
-  if (sessions.size >= MAX_SESSIONS) {
-    res.writeHead(503, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: "Too many active sessions" }));
-    return;
-  }
-
-  const newSessionId = randomUUID();
+  // A fresh server/transport pair is required for every stateless POST.
+  const mcpServer = createMcpServer(); // no outputDir in HTTP mode
   const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: () => newSessionId,
+    sessionIdGenerator: undefined,
   });
 
-  sessions.set(newSessionId, transport);
-  transport.onclose = () => sessions.delete(newSessionId);
+  let closed = false;
+  const cleanup = (): void => {
+    if (closed) return;
+    closed = true;
 
-  const mcpServer = createMcpServer(); // no outputDir — HTTP mode has no local file system
-  await mcpServer.connect(transport);
-  await transport.handleRequest(req, res);
+    // Keep resources alive until the HTTP response is finished/aborted.
+    void (async () => {
+      try {
+        await transport.close();
+      } finally {
+        await mcpServer.close();
+      }
+    })().catch((error: unknown) => {
+      process.stderr.write(`[UODO-MCP] Cleanup error: ${error}\n`);
+    });
+  };
+
+  res.once("close", cleanup);
+  try {
+    await mcpServer.connect(transport);
+    await transport.handleRequest(req, res);
+  } catch (error) {
+    cleanup();
+    throw error;
+  }
 }
 
 const httpServer = createHttpServer(async (req: IncomingMessage, res: ServerResponse) => {
@@ -72,7 +77,8 @@ const httpServer = createHttpServer(async (req: IncomingMessage, res: ServerResp
         status: "ok",
         server: "UODO-MCP",
         version: VERSION,
-        sessions: sessions.size,
+        sessions: 0,
+        sessionMode: "stateless",
       }));
       return;
     }

@@ -1,7 +1,7 @@
 ﻿# UODO MCP — decyzje Prezesa UODO w Claude
 
 [![npm version](https://img.shields.io/npm/v/@thescalablelegalmarketer/uodo-mcp)](https://www.npmjs.com/package/@thescalablelegalmarketer/uodo-mcp)
-[![Licencja: Apache-2.0](https://img.shields.io/badge/Licencja-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Licencja: Apache-2.0](https://img.shields.io/badge/Licencja-Apache%202.0-blue.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-compatible-green)](https://modelcontextprotocol.io)
 
 Serwer MCP, którym podłączysz Claude Desktop (oraz inne rozwiązania wspierające MCP) do [orzeczenia.uodo.gov.pl](https://orzeczenia.uodo.gov.pl) — oficjalnego portalu decyzji Prezesa Urzędu Ochrony Danych Osobowych. Zamiast ręcznie przeszukiwać portal i kopiować fragmenty decyzji, pytasz Claude'a w języku naturalnym w Claude Desktop, a on przeszukuje bazę, pobiera pełne treści do plików markdown i cytuje sentencję i uzasadnienie.
@@ -186,4 +186,6 @@ uodo-mcp/
 
 ## Licencja
 
-Apache-2.0 © [Paweł Ojdowski](https://afterlegal.pl/)
+Apache-2.0 © [Paweł Ojdowski](https://afterlegal.pl/) — pełna treść w pliku [LICENSE](LICENSE), informacja o autorstwie w [NOTICE](NOTICE).
+
+Możesz kopiować, modyfikować i wykorzystywać ten kod, także komercyjnie, pod warunkiem zachowania powyższych plików i oznaczenia wprowadzonych zmian.

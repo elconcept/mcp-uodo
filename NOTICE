@@ -1,0 +1,15 @@
+UODO MCP
+Copyright 2026 Paweł Ojdowski
+
+Licensed under the Apache License, Version 2.0 (the "License");
+see the LICENSE file in the root of this repository.
+
+This product includes software developed by Paweł Ojdowski
+(https://afterlegal.pl/) with contributions from Claude (Anthropic).
+
+Source: https://github.com/pawelojdowski/uodo-mcp
+
+Data retrieved at runtime from orzeczenia.uodo.gov.pl (the public
+decisions portal of the President of the Personal Data Protection
+Office, Poland) is not covered by this License and remains subject
+to the terms of its publisher.

@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { uodoGet, uodoFetchText } from "./api";
 import { formatSearchResults, formatDecision } from "./format";
+import { paginateDecision } from "./pagination";
 import type { UodoDocument, UodoSearchItem } from "./types";
 import { VERSION } from "./version";
 
@@ -76,16 +77,32 @@ export function createMcpServer(outputDir?: string): McpServer {
 
   server.tool(
     "uodo_get_decision",
-    "Pobiera pełną decyzję UODO po ID. Zwraca metadane + sentencję dosłownie + pełne uzasadnienie. W trybie lokalnym zapisuje też plik .md z kopią archiwalną.",
+    "Pobiera decyzję UODO po ID bez utraty treści. Zwraca tylko fragment (domyślnie 5000 punktów kodowych Unicode), plus totalLength, returnedLength, hasMore i nextOffset. Do odczytu całości wywołuj kolejne offset=nextOffset aż hasMore=false. Pierwszy offset=0. Strony po złączeniu dają dosłownie pełny tekst sentencji, uzasadnienia i metadanych. W trybie stdio zapisuje także pełny plik .md.",
     {
-      id: z.string().describe("ID decyzji z wyników uodo_search_decisions, np. 'PublicDocument-20260407-000000-000-abc123'"),
+      id: z.string().regex(/^PublicDocument-[A-Za-z0-9_-]{8,150}$/).describe("Dokładny ID z wyników uodo_search_decisions, np. 'PublicDocument-20260407-000000-000-abc123'"),
+      offset: z.number().int().min(0).default(0).describe("Offset w punktach kodowych Unicode (od 0), kontynuuj od nextOffset"),
+      limit: z.number().int().min(1).max(10_000).default(5000).describe("Liczba punktów kodowych Unicode do zwrócenia (1–10000; domyślnie 5000)"),
     },
-    async ({ id }) => {
+    async ({ id, offset, limit }) => {
       try {
         const doc = await uodoGet(`/documents/events/${id}`) as UodoDocument;
         if (!doc?.refid) return txt("Nie znaleziono decyzji lub brak refid w odpowiedzi API.");
         const body = await uodoFetchText(`/documents/public/items/${doc.refid}:0/body.txt`);
-        return txt(formatDecision(doc, body, outputDir));
+        const formatted = formatDecision(doc, body, outputDir);
+        const page = paginateDecision(formatted, offset, limit);
+        const details = {
+          identyfikator: id,
+          sygnatura: doc.refname ?? null,
+          zrodlo: "API portalu orzeczenia.uodo.gov.pl",
+          dokument_pelny: false, // Nie potwierdzono niezależnie kompletności publikacji źródłowej.
+          ...page,
+        };
+        const next = page.hasMore ? `Kolejny fragment: offset=${page.nextOffset}, limit=${limit}.` : "Koniec treści decyzji.";
+        const header = `UODO ${doc.refname ?? id} — znaki ${page.offset}–${page.offset + page.returnedLength} z ${page.totalLength}. ${next}`;
+        return {
+          content: [{ type: "text" as const, text: `${header}\\n\\n${page.tekst}` }],
+          structuredContent: details,
+        };
       } catch (error) {
         return err(error);
       }

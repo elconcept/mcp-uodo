@@ -1,0 +1,36 @@
+name: uodo-pagination-checks (no deploy)
+
+on:
+  push:
+    branches:
+      - feat/uodo-lossless-pagination-20261101
+    paths:
+      - src/**
+      - test/**
+      - package.json
+      - package-lock.json
+      - .github/workflows/uodo-pagination-checks.yml
+  pull_request:
+    paths:
+      - src/**
+      - test/**
+      - package.json
+      - package-lock.json
+      - .github/workflows/uodo-pagination-checks.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test

@@ -115,6 +115,12 @@ Pobiera pełną decyzję po ID. Zwraca metadane, dosłowną sentencję/decyzję 
 | Parametr | Typ | Opis |
 |-----------|------|-------------|
 | `id` | string | **Wymagany.** ID decyzji z wyników `uodo_search_decisions`, np. `PublicDocument-20260407-000000-000-abc123` |
+| `offset` | number | Offset punktów kodowych Unicode, od 0 (domyślnie 0) |
+| `limit` | number | Maksymalna liczba punktów kodowych Unicode w odpowiedzi: 1–10000 (domyślnie 5000) |
+
+**Bezstratny odczyt decyzji:** odpowiedź `structuredContent` zawiera pola `tekst`, `offset`, `limit`, `totalLength`, `returnedLength`, `hasMore`, `nextOffset`, identyfikator i sygnaturę. Standardowy `content` zawiera również fragment tekstu oraz wskazówkę kontynuacji. Zaczynaj od `offset=0` i powtarzaj z `offset=nextOffset`, aż `hasMore=false`. Połączenie kolejnych wartości `tekst` w tej kolejności daje cały tekst formatowany przez konektor (metadane, sentencję i uzasadnienie), bez pominięć lub nakładania fragmentów. Wartości `offset` są liczone w **punktach kodowych Unicode**, nie jednostkach UTF-16; nie używaj ich jako indeksów bajtowych. `dokument_pelny=false` oznacza brak niezależnej weryfikacji kompletności publikacji źródłowej, a nie brak pozostałych stron w konektorze. Do pełnego odczytu kieruj się `hasMore`.
+
+Od wersji z paginacją pojedyncze wywołanie `uodo_get_decision` **nie zwraca domyślnie całej decyzji** (poprzednio mogła zawierać ponad 100 tys. znaków). W trybie stdio pełny dokument jest nadal zapisywany jako lokalny plik Markdown. Zmiana jest w osobnym PR i wymaga testu staging przed wdrożeniem.
 
 ### `uodo_list_search_fields`
 

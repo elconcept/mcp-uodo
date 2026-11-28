@@ -1,0 +1,23 @@
+# Keep local credentials and development files out of image build contexts.
+.env
+.env.*
+**/.env
+**/.env.*
+.cf-service-token
+.cf-service-token.*
+**/.cf-service-token
+*.pem
+*.key
+**/*.pem
+**/*.key
+credentials*.json
+**/credentials*.json
+.git
+.github
+node_modules
+**/node_modules
+.venv
+**/.venv
+__pycache__
+**/__pycache__
+*.pyc
